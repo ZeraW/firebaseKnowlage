@@ -1,0 +1,50 @@
+//to upload data 
+private FirebaseFirestore mFirestore;
+private StorageReference mStorge;
+private Uri mImageUri;
+
+// create database 
+private void mFireStoreUpload(String name, String qurik, String occupation, String image) {
+        progressBar.setVisibility(View.VISIBLE);
+        Map<String, String> mUserMap = new HashMap<>();
+        mUserMap.put("name", name);
+        mUserMap.put("quirk", qurik);
+        mUserMap.put("occupation", occupation);
+        mUserMap.put("image", image);
+        mFirestore.collection("users").add(mUserMap).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Toast.makeText(getApplicationContext(), "Character Added", Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.INVISIBLE);
+                getName.setText("");
+                getQurik.setText("");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                progressBar.setVisibility(View.INVISIBLE);
+                Toast.makeText(getApplicationContext(), "Error : " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    
+// to get img url 
+private void getImageURL(String mName) {
+       
+        StorageReference user_profile = mStorge.child("photos").child(mName).child("image01" + ".jpg");
+
+        //to upload img and check if image is uploaded or not
+        user_profile.putFile(mImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> uploadtask) {
+                if (uploadtask.isSuccessful()) {
+
+                    //get the uploaded img url
+                    mImgUrl = uploadtask.getResult().getDownloadUrl().toString();
+                    //put the data into map
+                    mFireStoreUpload(mName, mQurik, mOccupation, mImgUrl);
+
+                }
+            }
+        });
+    }
