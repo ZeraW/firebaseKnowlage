@@ -1,0 +1,30 @@
+FirebaseFirestore mFirestore;
+mFirestore = FirebaseFirestore.getInstance();
+
+private void readData() {
+        mFirestore.collection("users").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                if (e != null) {
+                    Toast.makeText(ReadFireStore.this, "Error : " + e.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+
+                    for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
+                        //to manage Added data
+                        if (doc.getType() == DocumentChange.Type.ADDED) {
+                            String username = doc.getDocument().getString("name");
+                            String image = doc.getDocument().getString("image");
+                            String quirk = doc.getDocument().getString("quirk");
+                            String occupation = doc.getDocument().getString("occupation");
+                            //String userId = doc.getDocument().getId();
+                            Log.e("dddd", ""+username);
+                            mList.add(new ReadModel(username,quirk,occupation,image));
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    }
+
+                }
+            }
+
+        });
+    }
