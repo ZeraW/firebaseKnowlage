@@ -3,6 +3,9 @@ private FirebaseFirestore mFirestore;
 private StorageReference mStorge;
 private Uri mImageUri;
 
+mStorge = FirebaseStorage.getInstance().getReference();
+mFirestore = FirebaseFirestore.getInstance();
+        
 // create database 
 private void mFireStoreUpload(String name, String qurik, String occupation, String image) {
         progressBar.setVisibility(View.VISIBLE);
