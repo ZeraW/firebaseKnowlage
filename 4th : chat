@@ -44,7 +44,12 @@ private void chat(String msg){
         });
 
     }
-    
+    @Override
+    public void onStart() {
+        super.onStart();
+        mList.clear();
+        getMsg()
+        }
     
  // to retrive chat data 
  private void getMsg(){
