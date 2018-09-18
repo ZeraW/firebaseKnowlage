@@ -1,11 +1,16 @@
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
+    private FirebaseFirestore mFireStore;
+    private StorageReference mStorge;
     public static String TAG = "TAG";
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
+        mStorge = FirebaseStorage.getInstance().getReference().child("images");
+        mFireStore = FirebaseFirestore.getInstance();
     }
    
     @Override
@@ -30,6 +35,50 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             //do stuff if Successful
+                            
+                            /////////////////////
+                            
+                            
+                            final String user_Id = mAuth.getCurrentUser().getUid();
+
+                            //storage ref for image
+                            StorageReference user_profile = mStorge.child(user_Id+".jpg");
+
+                            //to upload img and check if image is uploaded or not
+                            user_profile.putFile(mImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> uploadtask) {
+                                    if (uploadtask.isSuccessful()){
+
+                                        //get the uploaded img url
+                                        String imgURL = uploadtask.getResult().getDownloadUrl().toString();
+                                        //put the data into map
+                                        Map<String,Object> userMap = new HashMap<>();
+                                        userMap.put("name",name);
+                                        userMap.put("image",imgURL);
+
+                                        //here where are we going to store all of the users
+                                        mFireStore.collection("Users").document(user_Id).set(userMap).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                progressBar.setVisibility(View.GONE);
+
+                                                SendUserToMainActivity();
+
+                                            }
+                                        });
+
+                                    }else {
+                                        Toast.makeText(RegisterActivity.this, "ErrorIMG"+uploadtask.getException(), Toast.LENGTH_LONG).show();
+                                        progressBar.setVisibility(View.GONE);
+
+                                    }
+                                }
+                            });
+                           
+                            /////////////////////
+                            
+                            
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
