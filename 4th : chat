@@ -1,0 +1,70 @@
+// send msg
+// you must have his id and your id 
+private FirebaseFirestore mFireStore;
+mFireStore = FirebaseFirestore.getInstance();
+// send method
+private void chat(String msg){
+        Date currentTime = Calendar.getInstance().getTime();
+        Log.e("time","time : " + currentTime);
+        String myPerspective = "Chat/"+myID+"/"+hisID;
+        String hisPerspective = "Chat/"+hisID+"/"+myID;
+        Map<String,Object> chatMap = new HashMap<>();
+        chatMap.put("msg",msg);
+        chatMap.put("from",myID);
+        chatMap.put("time",currentTime);
+
+        mFireStore.collection(myPerspective).add(chatMap).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                //to scroll down to last item in recyclerview
+                mRecyclerView.smoothScrollToPosition(999999999);
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "Error: "+e.getMessage(), Toast.LENGTH_LONG).show();
+
+
+            }
+        });
+        mFireStore.collection(hisPerspective).add(chatMap).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "Error: "+e.getMessage(), Toast.LENGTH_LONG).show();
+
+
+            }
+        });
+
+    }
+    
+    
+ // to retrive chat data 
+ private void getMsg(){
+        mFireStore.collection("Chat/"+myID+"/"+hisID).orderBy("time",Query.Direction.ASCENDING).addSnapshotListener(this, new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                for (DocumentChange doc : documentSnapshots.getDocumentChanges()){
+                    if (doc.getType()== DocumentChange.Type.ADDED){
+                        String msg = doc.getDocument().getString("msg");
+                        String from = doc.getDocument().getString("from");
+
+                        Log.e("msg","msg : "+msg);
+                        Log.e("msg","msg : "+from);
+                        mList.add(new ChatModel(msg,from));
+                        mAdapter.notifyDataSetChanged();
+                        mRecyclerView.smoothScrollToPosition(999999999);
+                        mRefreshLayout.setRefreshing(false);
+                    }
+
+                }
+            }
+        });
+    }
